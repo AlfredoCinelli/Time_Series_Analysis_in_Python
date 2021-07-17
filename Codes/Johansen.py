@@ -60,7 +60,6 @@ from numpy import zeros, ones, flipud, log
 from numpy.linalg import inv, eig, cholesky as chol
 from statsmodels.regression.linear_model import OLS
 
-
 tdiff = np.diff
 
 class Holder(object):

@@ -3,6 +3,7 @@
 FUNCTION TO RUN THE GRANGER CAUSALITY TEST IN AN EFFIECIENT WAY
 
 """
+
 # Packages
 
 from statsmodels.tsa.stattools import grangercausalitytests
