@@ -18,6 +18,8 @@ from arch import arch_model
 from arch.unitroot import ADF
 from scipy.stats import kstest
 import pmdarima as pm
+from Granger import granger # dedicated function
+from Johansen import coint_johansen # dedicated function
 
 #%% Import and prepare data
 
@@ -233,69 +235,6 @@ the correlogram shows no dangerous autocorrelation actually. Moreover via GARCH 
 are able to get rid of ARCH effects in residuals, indeed the ARCH test confirm the lack of conditional 
 heteroskedasticity in standardized residuals.'''
 
-#%% Conditional Volatility 
-
-d1='2008-08-18' # financial crisis benchmark
-d2='2020-02-20' # pandemic crisis benchmark
-s_msft_fc=s_msft[s_msft.index==d1] # conditional volatility for Microsoft
-s_intc_fc=s_intc[s_intc.index==d1] # conditional volatility for Intel
-s_msft_cov=s_msft[s_msft.index==d2] # conditional volatility for Microsoft
-s_intc_cov=s_intc[s_intc.index==d2] # conditional volatility for Intel
-
-d12='2008-08-11' # financial crisis benchmark week before
-d22='2020-02-24' # pandemic crisis benchmark week before
-s_msft_fc2=s_msft[s_msft.index==d12] # conditional volatility for Microsoft
-s_intc_fc2=s_intc[s_intc.index==d12] # conditional volatility for Intel
-s_msft_cov2=s_msft[s_msft.index==d22] # conditional volatility for Microsoft
-s_intc_cov2=s_intc[s_intc.index==d22] # conditional volatility for Intel
-
-print('Microsoft volatlity change for Financial Crisis week '+str(s_msft_fc.values/s_msft_fc2.values -1))
-print('Microsoft volatlity chaneg for Covid week '+str(s_msft_cov.values/s_msft_cov2.values -1))
-print('Intel volatlity change for Financial Crisis week '+str(s_intc_fc.values/s_intc_fc2.values -1))
-print('Intel volatlity change for Covid week '+str(s_intc_cov.values/s_intc_cov2.values -1))
-s_msft_pm=s_msft[s_msft.index>='2008-07-01']
-s_msft_pm=s_msft_pm[s_msft_pm.index<='2008-07-31' ].mean()
-s_intc_pm=s_intc[s_intc.index>='2008-07-01']
-s_intc_pm=s_intc_pm[s_intc_pm.index<='2008-07-31' ].mean()
-s_msft_py=s_msft[s_msft.index>='2007-01-01']
-s_msft_py=s_msft_py[s_msft_py.index<='2007-12-31' ].mean()
-s_intc_py=s_intc[s_intc.index>='2007-01-01']
-s_intc_py=s_intc_py[s_intc_py.index<='2007-12-31' ].mean()
-
-s_msft_pm2=s_msft[s_msft.index>='2020-01-01']
-s_msft_pm2=s_msft_pm2[s_msft_pm2.index<='2020-01-31' ].mean()
-s_intc_pm2=s_intc[s_intc.index>='2020-01-01']
-s_intc_pm2=s_intc_pm2[s_intc_pm2.index<='2020-01-31' ].mean()
-s_msft_py2=s_msft[s_msft.index>='2019-01-01']
-s_msft_py2=s_msft_py2[s_msft_py2.index<='2019-12-31' ].mean()
-s_intc_py2=s_intc[s_intc.index>='2019-01-01']
-s_intc_py2=s_intc_py2[s_intc_py2.index<='2019-12-31' ].mean()
-
-r_msft_max=r_msft[r_msft==r_msft.max()]
-print('Date of the max return of Microsoft -->'+str(r_msft_max.index))
-r_intc_max=r_intc[r_intc==r_intc.max()]
-print('Date of the max return of Intel -->'+str(r_intc_max.index))
-z_msft_max=z_msft[z_msft==z_msft.max()]
-print('Date of the max std residual of Microsoft -->'+str(z_msft_max.index))
-z_intc_max=z_intc[z_intc==z_intc.max()]
-print('Date of the max std residual of Intel -->'+str(z_intc_max.index))
-
-
-''' --------------------------------- COMMENT --------------------------------
-As it can be seen from the data in date 18-08-2008 the return was less negative compared
-to that in 11-08-2008 and thus as a consequence the conditonal volatiltiy was larger
-the latter date rather than the former one, this applies for both Microsoft and Intel.
-Moreover the volatility at the benchmark date for the financial crisis is smaller than
-the average volatility of the previous month and larger than the volatility of the 
-previous year, this applies for both Microsoft and Intel.
-Regarding the pandemic crisis for Microsoft the volatility at the benchmark date is larger
-than the volatlity in the previous month and sligthly smaller of the volatility in the previous 
-year. For Intel the volatility at the benchmark date is larger than that in the previous month
-and also larger than the volatility in the previous year.
-Regaring the date of the maximum return and standardized residual for both Microsoft and Intel
-the two date are not coinciding. That is true because the standardized residual take into account
-the conditional volatility compared to the pure return.'''
-
 #%% Unconditional volatility and forecasts
 
 w_msft=res_msft.params[0] # omega
@@ -347,8 +286,6 @@ frequency data, as proxy of the true and thus comparable variance for forecastin
 '''--------------------------- MULTIVARIATE ANALYSIS ------------------------------'''
 #%% Cointegration analysis
 
-from Granger import granger
-from Johansen import coint_johansen
 l_p_msft=np.log(Data_msft['Low']) # low log-prices
 l_p_msft.name='Low Microsoft'
 h_p_msft=np.log(Data_msft['High']) # high log-prices
