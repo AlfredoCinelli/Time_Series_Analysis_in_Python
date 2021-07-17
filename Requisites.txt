@@ -1,0 +1,9 @@
+# Requisites
+
+numpy == 10.20.2
+pandas == 1.2.4
+scipy == 1.4.1
+matpllotlib ==
+arch == 4.16.2
+statsmodels == 0.12.2
+mgarch == 0.2.0
