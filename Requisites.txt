@@ -6,4 +6,5 @@ scipy == 1.4.1
 matpllotlib ==
 arch == 4.16.2
 statsmodels == 0.12.2
-mgarch == 0.2.0
+yfinance == 0.1.55
+pmdarima == 1.8.0
