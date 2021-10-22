@@ -55,6 +55,7 @@ function result = johansen(x,p,k)
 % ****************************************************************
 '''
 
+import statsmodels.tsa.tsatools as tsat
 import numpy as np
 from numpy import zeros, ones, flipud, log
 from numpy.linalg import inv, eig, cholesky as chol
@@ -62,11 +63,14 @@ from statsmodels.regression.linear_model import OLS
 
 tdiff = np.diff
 
+
 class Holder(object):
     pass
 
+
 def rows(x):
     return x.shape[0]
+
 
 def trimr(x, front, end):
     if end > 0:
@@ -74,27 +78,29 @@ def trimr(x, front, end):
     else:
         return x[front:]
 
-import statsmodels.tsa.tsatools as tsat
+
 mlag = tsat.lagmat
+
 
 def mlag_(x, maxlag):
     '''return all lags up to maxlag
     '''
     return x[:-lag]
 
+
 def lag(x, lag):
     return x[:-lag]
+
 
 def detrend(y, order):
     if order == -1:
         return y
     return OLS(y, np.vander(np.linspace(-1, 1, len(y)), order + 1)).fit().resid
 
+
 def resid(y, x):
     r = y - np.dot(x, np.dot(np.linalg.pinv(x), y))
     return r
-
-
 
 
 def coint_johansen(x, p, k, print_on_console=True):
@@ -144,7 +150,6 @@ def coint_johansen(x, p, k, print_on_console=True):
     temp = inv(chol(np.dot(du.T, np.dot(skk, du))))
     dt = np.dot(du, temp)
 
-
     # JP: the next part can be done much  easier
 
     # %      NOTE: At this point, the eigenvectors are aligned by column. To
@@ -187,7 +192,6 @@ def coint_johansen(x, p, k, print_on_console=True):
     # %eigenvector array ever changed. The final value of the "beta" array using either method
     # %should be the same.
 
-
     # % Compute the trace and max eigenvalue statistics */
     lr1 = zeros(m)
     lr2 = zeros(m)
@@ -196,7 +200,7 @@ def coint_johansen(x, p, k, print_on_console=True):
     iota = ones(m)
     t, junk = rkt.shape
     for i in range(0, m):
-        tmp = trimr(log(iota - a), i , 0)
+        tmp = trimr(log(iota - a), i, 0)
         lr1[i] = -t * np.sum(tmp, 0)  # columnsum ?
         # tmp = np.log(1-a)
         # lr1[i] = -t * np.sum(tmp[i:])
@@ -220,81 +224,80 @@ def coint_johansen(x, p, k, print_on_console=True):
     result.ind = aind
     result.meth = 'johansen'
 
-    if print_on_console == True:
-        print ('--------------------------------------------------')
-        print ('--> Trace Statistics')
-        print ('variable statistic Crit-90% Crit-95%  Crit-99%')
+    if print_on_console:
+        print('--------------------------------------------------')
+        print('--> Trace Statistics')
+        print('variable statistic Crit-90% Crit-95%  Crit-99%')
         for i in range(len(result.lr1)):
-            print ('r =', i, '\t', round(result.lr1[i], 4), result.cvt[i, 0], result.cvt[i, 1], result.cvt[i, 2])
-        print ('--------------------------------------------------')
-        print ('--> Eigen Statistics')
-        print ('variable statistic Crit-90% Crit-95%  Crit-99%')
+            print('r =', i, '\t', round(
+                result.lr1[i], 4), result.cvt[i, 0], result.cvt[i, 1], result.cvt[i, 2])
+        print('--------------------------------------------------')
+        print('--> Eigen Statistics')
+        print('variable statistic Crit-90% Crit-95%  Crit-99%')
         for i in range(len(result.lr2)):
-            print ('r =', i, '\t', round(result.lr2[i], 4), result.cvm[i, 0], result.cvm[i, 1], result.cvm[i, 2])
-        print ('--------------------------------------------------')
-        print ('eigenvectors:\n', result.evec)
-        print ('--------------------------------------------------')
-        print ('eigenvalues:\n', result.eig)
-        print ('--------------------------------------------------')
-
+            print('r =', i, '\t', round(
+                result.lr2[i], 4), result.cvm[i, 0], result.cvm[i, 1], result.cvm[i, 2])
+        print('--------------------------------------------------')
+        print('eigenvectors:\n', result.evec)
+        print('--------------------------------------------------')
+        print('eigenvalues:\n', result.eig)
+        print('--------------------------------------------------')
 
     return result
 
+
 def c_sjt(n, p):
 
-# PURPOSE: find critical values for Johansen trace statistic
-# ------------------------------------------------------------
-# USAGE:  jc = c_sjt(n,p)
-# where:    n = dimension of the VAR system
-#               NOTE: routine doesn't work for n > 12
-#           p = order of time polynomial in the null-hypothesis
-#                 p = -1, no deterministic part
-#                 p =  0, for constant term
-#                 p =  1, for constant plus time-trend
-#                 p >  1  returns no critical values
-# ------------------------------------------------------------
-# RETURNS: a (3x1) vector of percentiles for the trace
-#          statistic for [90# 95# 99#]
-# ------------------------------------------------------------
-# NOTES: for n > 12, the function returns a (3x1) vector of zeros.
-#        The values returned by the function were generated using
-#        a method described in MacKinnon (1996), using his FORTRAN
-#        program johdist.f
-# ------------------------------------------------------------
-# SEE ALSO: johansen()
-# ------------------------------------------------------------
-# # References: MacKinnon, Haug, Michelis (1996) 'Numerical distribution
-# functions of likelihood ratio tests for cointegration',
-# Queen's University Institute for Economic Research Discussion paper.
-# -------------------------------------------------------
+    # PURPOSE: find critical values for Johansen trace statistic
+    # ------------------------------------------------------------
+    # USAGE:  jc = c_sjt(n,p)
+    # where:    n = dimension of the VAR system
+    #               NOTE: routine doesn't work for n > 12
+    #           p = order of time polynomial in the null-hypothesis
+    #                 p = -1, no deterministic part
+    #                 p =  0, for constant term
+    #                 p =  1, for constant plus time-trend
+    #                 p >  1  returns no critical values
+    # ------------------------------------------------------------
+    # RETURNS: a (3x1) vector of percentiles for the trace
+    #          statistic for [90# 95# 99#]
+    # ------------------------------------------------------------
+    # NOTES: for n > 12, the function returns a (3x1) vector of zeros.
+    #        The values returned by the function were generated using
+    #        a method described in MacKinnon (1996), using his FORTRAN
+    #        program johdist.f
+    # ------------------------------------------------------------
+    # SEE ALSO: johansen()
+    # ------------------------------------------------------------
+    # # References: MacKinnon, Haug, Michelis (1996) 'Numerical distribution
+    # functions of likelihood ratio tests for cointegration',
+    # Queen's University Institute for Economic Research Discussion paper.
+    # -------------------------------------------------------
 
-# written by:
-# James P. LeSage, Dept of Economics
-# University of Toledo
-# 2801 W. Bancroft St,
-# Toledo, OH 43606
-# jlesage@spatial-econometrics.com
-#
-# Ported to Python by Javier Garcia
-# javier.macro.trader@gmail.com
+    # written by:
+    # James P. LeSage, Dept of Economics
+    # University of Toledo
+    # 2801 W. Bancroft St,
+    # Toledo, OH 43606
+    # jlesage@spatial-econometrics.com
+    #
+    # Ported to Python by Javier Garcia
+    # javier.macro.trader@gmail.com
 
-# these are the values from Johansen's 1995 book
-# for comparison to the MacKinnon values
-# jcp0 = [ 2.98   4.14   7.02
-#        10.35  12.21  16.16
-#        21.58  24.08  29.19
-#        36.58  39.71  46.00
-#        55.54  59.24  66.71
-#        78.30  86.36  91.12
-#       104.93 109.93 119.58
-#       135.16 140.74 151.70
-#       169.30 175.47 187.82
-#       207.21 214.07 226.95
-#       248.77 256.23 270.47
-#       293.83 301.95 318.14];
-
-
-
+    # these are the values from Johansen's 1995 book
+    # for comparison to the MacKinnon values
+    # jcp0 = [ 2.98   4.14   7.02
+    #        10.35  12.21  16.16
+    #        21.58  24.08  29.19
+    #        36.58  39.71  46.00
+    #        55.54  59.24  66.71
+    #        78.30  86.36  91.12
+    #       104.93 109.93 119.58
+    #       135.16 140.74 151.70
+    #       169.30 175.47 187.82
+    #       207.21 214.07 226.95
+    #       248.77 256.23 270.47
+    #       293.83 301.95 318.14];
 
     jcp0 = ((2.9762, 4.1296, 6.9406),
             (10.4741, 12.3212, 16.3640),
@@ -308,7 +311,6 @@ def c_sjt(n, p):
             (212.4721, 219.4051, 232.8291),
             (255.6732, 263.2603, 277.9962),
             (302.9054, 311.1288, 326.9716))
-
 
     jcp1 = ((2.7055, 3.8415, 6.6349),
             (13.4294, 15.4943, 19.9349),
@@ -336,8 +338,6 @@ def c_sjt(n, p):
             (298.8836, 306.8988, 322.4264),
             (350.1125, 358.7190, 375.3203))
 
-
-
     if (p > 1) or (p < -1):
         jc = (0, 0, 0)
     elif (n > 12) or (n < 1):
@@ -349,46 +349,44 @@ def c_sjt(n, p):
     elif p == 1:
         jc = jcp2[n - 1]
 
-
-
     return jc
+
 
 def c_sja(n, p):
 
-# PURPOSE: find critical values for Johansen maximum eigenvalue statistic
-# ------------------------------------------------------------
-# USAGE:  jc = c_sja(n,p)
-# where:    n = dimension of the VAR system
-#           p = order of time polynomial in the null-hypothesis
-#                 p = -1, no deterministic part
-#                 p =  0, for constant term
-#                 p =  1, for constant plus time-trend
-#                 p >  1  returns no critical values
-# ------------------------------------------------------------
-# RETURNS: a (3x1) vector of percentiles for the maximum eigenvalue
-#          statistic for: [90# 95# 99#]
-# ------------------------------------------------------------
-# NOTES: for n > 12, the function returns a (3x1) vector of zeros.
-#        The values returned by the function were generated using
-#        a method described in MacKinnon (1996), using his FORTRAN
-#        program johdist.f
-# ------------------------------------------------------------
-# SEE ALSO: johansen()
-# ------------------------------------------------------------
-# References: MacKinnon, Haug, Michelis (1996) 'Numerical distribution
-# functions of likelihood ratio tests for cointegration',
-# Queen's University Institute for Economic Research Discussion paper.
-# -------------------------------------------------------
+    # PURPOSE: find critical values for Johansen maximum eigenvalue statistic
+    # ------------------------------------------------------------
+    # USAGE:  jc = c_sja(n,p)
+    # where:    n = dimension of the VAR system
+    #           p = order of time polynomial in the null-hypothesis
+    #                 p = -1, no deterministic part
+    #                 p =  0, for constant term
+    #                 p =  1, for constant plus time-trend
+    #                 p >  1  returns no critical values
+    # ------------------------------------------------------------
+    # RETURNS: a (3x1) vector of percentiles for the maximum eigenvalue
+    #          statistic for: [90# 95# 99#]
+    # ------------------------------------------------------------
+    # NOTES: for n > 12, the function returns a (3x1) vector of zeros.
+    #        The values returned by the function were generated using
+    #        a method described in MacKinnon (1996), using his FORTRAN
+    #        program johdist.f
+    # ------------------------------------------------------------
+    # SEE ALSO: johansen()
+    # ------------------------------------------------------------
+    # References: MacKinnon, Haug, Michelis (1996) 'Numerical distribution
+    # functions of likelihood ratio tests for cointegration',
+    # Queen's University Institute for Economic Research Discussion paper.
+    # -------------------------------------------------------
 
-# written by:
-# James P. LeSage, Dept of Economics
-# University of Toledo
-# 2801 W. Bancroft St,
-# Toledo, OH 43606
-# jlesage@spatial-econometrics.com
-# Ported to Python by Javier Garcia
-# javier.macro.trader@gmail.com
-
+    # written by:
+    # James P. LeSage, Dept of Economics
+    # University of Toledo
+    # 2801 W. Bancroft St,
+    # Toledo, OH 43606
+    # jlesage@spatial-econometrics.com
+    # Ported to Python by Javier Garcia
+    # javier.macro.trader@gmail.com
 
     jcp0 = ((2.9762, 4.1296, 6.9406),
             (9.4748, 11.2246, 15.0923),
@@ -429,7 +427,6 @@ def c_sja(n, p):
             (70.4630, 73.9355, 81.0678),
             (76.4081, 79.9878, 87.2395))
 
-
     if (p > 1) or (p < -1):
         jc = (0, 0, 0)
     elif (n > 12) or (n < 1):
@@ -440,6 +437,5 @@ def c_sja(n, p):
         jc = jcp1[n - 1]
     elif p == 1:
         jc = jcp2[n - 1]
-
 
     return jc
